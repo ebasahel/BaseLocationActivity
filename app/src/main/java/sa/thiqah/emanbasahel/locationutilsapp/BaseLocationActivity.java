@@ -23,6 +23,7 @@ import com.google.android.gms.location.LocationServices;
 public class BaseLocationActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    //region declarations
     public Location currentLocation;
     protected GoogleApiClient mGoogleApiClient;
     protected int permissionCheck;
@@ -45,6 +46,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
      * Start Updates and Stop Updates buttons.
      */
     protected Boolean mRequestingLocationUpdates;
+    //endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,12 @@ public class BaseLocationActivity extends AppCompatActivity implements
 
     }
 
+    private onLocationConnected mLocationConnectedListener;
+    public interface onLocationConnected
+    {
+        void getCurrentLocation(Location location);
+    }
+    //region checkPermission
     public void checkPermission() {
         ActivityCompat.requestPermissions(this,
                 new String[]{ android.Manifest.permission.ACCESS_FINE_LOCATION}, request_permission_for_Location);
@@ -90,7 +98,9 @@ public class BaseLocationActivity extends AppCompatActivity implements
             // permissions this app might request
         }
     }
+    //endregion
 
+    //region GoogleApiClient Config
     /**
      * Builds a GoogleApiClient. Uses the {@code #addApi} method to request the
      * LocationServices API.
@@ -103,6 +113,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
                 .build();
         createLocationRequest();
     }
+    //endregion
 
     //region create location request
     /**
@@ -158,10 +169,12 @@ public class BaseLocationActivity extends AppCompatActivity implements
 
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        if (mGoogleApiClient.isConnected())
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
     //endregion
 
+    //region Activity Lifecylce callback methods
     @Override
     protected void onStart() {
         super.onStart();
@@ -197,26 +210,27 @@ public class BaseLocationActivity extends AppCompatActivity implements
         stopLocationUpdates();
         super.onStop();
     }
+    //endregion
 
+    //region Location Listener callback method
     @Override
     public void onLocationChanged(Location location) {
         currentLocation =location;
     }
+    //endregion
 
+    //region Location connection callback methods
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
+        mLocationConnectedListener= (onLocationConnected) this;
         if (currentLocation == null) {
             if(permissionCheck != PackageManager.PERMISSION_GRANTED)
                 checkPermission();
-            else currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        }
-
-        // If the user presses the Start Updates button before GoogleApiClient connects, we set
-        // mRequestingLocationUpdates to true (see startUpdatesButtonHandler()). Here, we check
-        // the value of mRequestingLocationUpdates and if it is true, we start location updates.
-        if (mRequestingLocationUpdates) {
-            startLocationUpdates();
+            else {
+                currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                mLocationConnectedListener.getCurrentLocation(currentLocation);
+                startLocationUpdates();
+            }
         }
     }
 
@@ -229,5 +243,5 @@ public class BaseLocationActivity extends AppCompatActivity implements
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
+    //endregion
 }
