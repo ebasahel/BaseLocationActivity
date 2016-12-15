@@ -20,11 +20,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends BaseLocationActivity implements OnMapReadyCallback ,BaseLocationActivity.onLocationConnected {
+public class MainActivity extends BaseLocationActivity implements OnMapReadyCallback, BaseLocationActivity.onLocationConnected {
 
     private GoogleMap mMap;
-    private MarkerOptions mMarker;
-    private double mMarkerLat,mMarkerLong;
+    private MarkerOptions mMarkerOptions;
+    private Marker mMarker;
+    private double mMarkerLat, mMarkerLong;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +50,7 @@ public class MainActivity extends BaseLocationActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (permissionCheck== PackageManager.PERMISSION_GRANTED)
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED)
             mMap.setMyLocationEnabled(true);
         else checkPermission();
 
@@ -69,16 +71,18 @@ public class MainActivity extends BaseLocationActivity implements OnMapReadyCall
     }
 
     public void addMarker(final LatLng latlng, final int zoom) {
-        mMarker = new MarkerOptions().position(latlng);
-        mMarker.draggable(true);
-        mMap.addMarker(mMarker);
+        mMarkerOptions = new MarkerOptions().position(latlng);
+        mMarker= mMap.addMarker(mMarkerOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, zoom));
     }
 
 
     @Override
     public void getCurrentLocation(Location location) {
+        if (mMarker == null) {
+            addMarker(new LatLng(location.getLatitude(), location.getLongitude()), 15);
+        }else
+            mMarker.setPosition(new LatLng(location.getLatitude(), location.getLongitude()));
 
-        addMarker(new LatLng(location.getLatitude(), location.getLongitude()), 15);
     }
 }

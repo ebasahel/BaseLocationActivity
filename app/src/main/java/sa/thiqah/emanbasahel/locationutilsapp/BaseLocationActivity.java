@@ -24,7 +24,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     //region declarations
-    public Location currentLocation;
+    private Location currentLocation;
     protected GoogleApiClient mGoogleApiClient;
     protected int permissionCheck;
     protected LocationRequest mLocationRequest;
@@ -55,7 +55,6 @@ public class BaseLocationActivity extends AppCompatActivity implements
         buildGoogleApiClient();
 
         permissionCheck= ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
-
     }
 
     private onLocationConnected mLocationConnectedListener;
@@ -63,12 +62,12 @@ public class BaseLocationActivity extends AppCompatActivity implements
     {
         void getCurrentLocation(Location location);
     }
+
     //region checkPermission
     public void checkPermission() {
         ActivityCompat.requestPermissions(this,
                 new String[]{ android.Manifest.permission.ACCESS_FINE_LOCATION}, request_permission_for_Location);
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -215,7 +214,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
     //region Location Listener callback method
     @Override
     public void onLocationChanged(Location location) {
-        currentLocation =location;
+        mLocationConnectedListener.getCurrentLocation(location);
     }
     //endregion
 
