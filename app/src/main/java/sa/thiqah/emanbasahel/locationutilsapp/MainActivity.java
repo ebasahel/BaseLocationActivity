@@ -56,11 +56,6 @@ public class MainActivity extends BaseLocationActivity implements OnMapReadyCall
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
 
-        if (currentLocation!=null)
-        {
-            addMarker(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 15);
-        }
-
 //        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 //            @Override
 //            public void onMapClick(LatLng latlng) {
@@ -83,6 +78,7 @@ public class MainActivity extends BaseLocationActivity implements OnMapReadyCall
 
     @Override
     public void getCurrentLocation(Location location) {
-        currentLocation=location;
+
+        addMarker(new LatLng(location.getLatitude(), location.getLongitude()), 15);
     }
 }
