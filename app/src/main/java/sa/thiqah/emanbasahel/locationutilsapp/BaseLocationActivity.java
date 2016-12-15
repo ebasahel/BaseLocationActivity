@@ -4,7 +4,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import com.google.android.gms.location.LocationListener;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -57,11 +56,13 @@ public class BaseLocationActivity extends AppCompatActivity implements
         permissionCheck= ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
+    //region USAGE: send location value
     private onLocationConnected mLocationConnectedListener;
     public interface onLocationConnected
     {
         void getCurrentLocation(Location location);
     }
+    //endregion
 
     //region checkPermission
     public void checkPermission() {

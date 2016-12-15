@@ -25,60 +25,53 @@ public class MainActivity extends BaseLocationActivity implements OnMapReadyCall
     private GoogleMap mMap;
     private MarkerOptions mMarkerOptions;
     private Marker mMarker;
-    private double mMarkerLat, mMarkerLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //displaying the map
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
     }
 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        /**
+         * to display the blue marker that indicated user's current location
+         * (it needs user's permission)
+         */
         if (permissionCheck == PackageManager.PERMISSION_GRANTED)
             mMap.setMyLocationEnabled(true);
         else checkPermission();
 
+        /**
+         * configuiring the map
+         */
         mMap.getUiSettings().setMapToolbarEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-
-//        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-//            @Override
-//            public void onMapClick(LatLng latlng) {
-//
-//                if (mMarker != null) {
-//                    mMap.clear();
-//                }
-//                addMarker(latlng, 15);
-//            }
-//        });
     }
 
+    //region to add marker on map
     public void addMarker(final LatLng latlng, final int zoom) {
         mMarkerOptions = new MarkerOptions().position(latlng);
         mMarker= mMap.addMarker(mMarkerOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, zoom));
     }
+    //endregion
 
-
+    /**
+     *
+     * @param location Firstly, it's the last known location then it's received from the locationListener
+     */
     @Override
     public void getCurrentLocation(Location location) {
+        /**
+         * if the marker is NULL add marker else update its position to the latest received location
+         */
         if (mMarker == null) {
             addMarker(new LatLng(location.getLatitude(), location.getLongitude()), 15);
         }else
