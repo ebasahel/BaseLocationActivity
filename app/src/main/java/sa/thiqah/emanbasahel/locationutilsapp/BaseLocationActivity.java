@@ -78,14 +78,13 @@ public class BaseLocationActivity extends AppCompatActivity implements
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
+                    //region getCurrentLocation when permission is granted
+                    currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                    mLocationConnectedListener.getCurrentLocation(currentLocation);
                     startLocationUpdates();
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
+                    //endregion
 
                 } else {
-
 
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
