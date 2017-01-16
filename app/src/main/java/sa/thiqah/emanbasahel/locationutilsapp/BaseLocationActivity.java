@@ -2,6 +2,7 @@ package sa.thiqah.emanbasahel.locationutilsapp;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
+
 import com.google.android.gms.location.LocationListener;
 
 import android.support.annotation.NonNull;
@@ -10,6 +11,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -27,7 +29,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
     protected GoogleApiClient mGoogleApiClient;
     protected int permissionCheck;
     protected LocationRequest mLocationRequest;
-    protected final int request_permission_for_Location=012;
+    protected final int request_permission_for_Location = 012;
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
@@ -53,13 +55,13 @@ public class BaseLocationActivity extends AppCompatActivity implements
         mRequestingLocationUpdates = false;
         buildGoogleApiClient();
 
-        permissionCheck= ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+        permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
     //region USAGE: send location value
     private onLocationConnected mLocationConnectedListener;
-    public interface onLocationConnected
-    {
+
+    public interface onLocationConnected {
         void getCurrentLocation(Location location);
     }
     //endregion
@@ -67,7 +69,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
     //region checkPermission
     public void checkPermission() {
         ActivityCompat.requestPermissions(this,
-                new String[]{ android.Manifest.permission.ACCESS_FINE_LOCATION}, request_permission_for_Location);
+                new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, request_permission_for_Location);
     }
 
     @Override
@@ -76,22 +78,21 @@ public class BaseLocationActivity extends AppCompatActivity implements
         switch (requestCode) {
             case request_permission_for_Location: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     //region getCurrentLocation when permission is granted
-                    currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                    mLocationConnectedListener.getCurrentLocation(currentLocation);
-                    startLocationUpdates();
+                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                        mLocationConnectedListener.getCurrentLocation(currentLocation);
+                        startLocationUpdates();
+                    }
                     //endregion
-
-                } else {
+                else {
 
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
-                return;
-            }
 
+            }
 
             // other 'case' lines to check for other
             // permissions this app might request
@@ -153,9 +154,13 @@ public class BaseLocationActivity extends AppCompatActivity implements
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
 
-        if(permissionCheck != PackageManager.PERMISSION_GRANTED)
-            checkPermission();
-        else LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        try{
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }catch (SecurityException ex)
+        {
+            Log.e(getClass().getSimpleName(),ex.getMessage());
+        }
+
     }
 
     /**
