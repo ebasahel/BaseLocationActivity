@@ -39,11 +39,6 @@ public class MainActivity extends BaseLocationActivity implements OnMapReadyCall
             mMap.setMyLocationEnabled(true);
         else checkPermission();
 
-        /**
-         * configuiring the map
-         */
-        mMap.getUiSettings().setMapToolbarEnabled(true);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
     //region to add marker on map
