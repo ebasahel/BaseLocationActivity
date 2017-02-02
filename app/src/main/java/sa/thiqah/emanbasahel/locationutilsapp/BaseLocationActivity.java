@@ -79,8 +79,8 @@ public class BaseLocationActivity extends AppCompatActivity implements
             case request_permission_for_Location: {
                 // If request is cancelled, the result arrays are empty.
                     //region getCurrentLocation when permission is granted
-                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                            && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                         mLocationConnectedListener.getCurrentLocation(currentLocation);
                         startLocationUpdates();
