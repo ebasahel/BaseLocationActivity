@@ -2,4 +2,8 @@
     <string name="app_name">LocationUtilsApp</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_maps">Map</string>
+    <string name="dialog_message">you have to enable location services</string>
+    <string name="dialog_title">Location Services is disabled</string>
+    <string name="action_agree">Agree</string>
+    <string name="action_disagree">Disagree</string>
 </resources>

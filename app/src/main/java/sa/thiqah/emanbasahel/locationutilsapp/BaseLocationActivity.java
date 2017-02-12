@@ -1,14 +1,20 @@
 package sa.thiqah.emanbasahel.locationutilsapp;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 
 import com.google.android.gms.location.LocationListener;
 
+import android.location.LocationManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -46,13 +52,11 @@ public class BaseLocationActivity extends AppCompatActivity implements
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
      */
-    protected Boolean mRequestingLocationUpdates;
     //endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRequestingLocationUpdates = false;
         buildGoogleApiClient();
 
         permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
@@ -63,6 +67,13 @@ public class BaseLocationActivity extends AppCompatActivity implements
 
     public interface onLocationConnected {
         void getCurrentLocation(Location location);
+    }
+    //endregion
+
+    //region is Location Service available
+    public boolean isLocationEnabled() {
+        LocationManager location_manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return location_manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
     //endregion
 
@@ -81,9 +92,32 @@ public class BaseLocationActivity extends AppCompatActivity implements
                     //region getCurrentLocation when permission is granted
                     if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                             && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                        mLocationConnectedListener.getCurrentLocation(currentLocation);
-                        startLocationUpdates();
+
+                        if (!isLocationEnabled()) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                            builder.setMessage(R.string.dialog_message)
+                                    .setTitle(R.string.dialog_title);
+                            builder.setPositiveButton(R.string.action_agree, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    startActivity(intent);
+                                }
+                            });
+                            builder.setNegativeButton(R.string.action_disagree, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    finish();
+                                }
+                            });
+
+                            AlertDialog dialog = builder.create();
+                            dialog.setCanceledOnTouchOutside(false);
+                            dialog.setCancelable(false);
+                            dialog.show();
+                        } else {
+                            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                            if (currentLocation!=null)
+                                mLocationConnectedListener.getCurrentLocation(currentLocation);
+                        }
                     }
                     //endregion
                 else {
@@ -182,7 +216,8 @@ public class BaseLocationActivity extends AppCompatActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.connect();
     }
 
     @Override
@@ -191,9 +226,8 @@ public class BaseLocationActivity extends AppCompatActivity implements
         // Within {@code onPause()}, we pause location updates, but leave the
         // connection to GoogleApiClient intact.  Here, we resume receiving
         // location updates if the user has requested them.
-
+        mLocationConnectedListener = (onLocationConnected) this;
         if (mGoogleApiClient.isConnected()) {
-            mRequestingLocationUpdates=true;
             startLocationUpdates();
         }
     }
@@ -202,16 +236,16 @@ public class BaseLocationActivity extends AppCompatActivity implements
     protected void onPause() {
         super.onPause();
         // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
+        super.onPause();
         if (mGoogleApiClient.isConnected()) {
-            mRequestingLocationUpdates=false;
             stopLocationUpdates();
         }
     }
 
     @Override
     protected void onStop() {
-        mGoogleApiClient.disconnect();
-        stopLocationUpdates();
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.disconnect();
         super.onStop();
     }
     //endregion
@@ -226,15 +260,14 @@ public class BaseLocationActivity extends AppCompatActivity implements
     //region Location connection callback methods
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        mLocationConnectedListener= (onLocationConnected) this;
+        mLocationConnectedListener = (onLocationConnected) this;
         if (currentLocation == null) {
-            if(permissionCheck != PackageManager.PERMISSION_GRANTED)
-                checkPermission();
-            else {
-                currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                mLocationConnectedListener.getCurrentLocation(currentLocation);
-                startLocationUpdates();
-            }
+            checkPermission();
+        }else
+        {
+            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            mLocationConnectedListener.getCurrentLocation(currentLocation);
+            startLocationUpdates();
         }
     }
 
