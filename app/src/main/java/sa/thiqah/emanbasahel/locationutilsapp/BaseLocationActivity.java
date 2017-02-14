@@ -94,25 +94,7 @@ public class BaseLocationActivity extends AppCompatActivity implements
                             && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                         if (!isLocationEnabled()) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                            builder.setMessage(R.string.dialog_message)
-                                    .setTitle(R.string.dialog_title);
-                            builder.setPositiveButton(R.string.action_agree, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                    startActivity(intent);
-                                }
-                            });
-                            builder.setNegativeButton(R.string.action_disagree, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    finish();
-                                }
-                            });
-
-                            AlertDialog dialog = builder.create();
-                            dialog.setCanceledOnTouchOutside(false);
-                            dialog.setCancelable(false);
-                            dialog.show();
+                            showLocationAvailabilityDialog();
                         } else {
                             currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                             if (currentLocation!=null)
@@ -131,6 +113,28 @@ public class BaseLocationActivity extends AppCompatActivity implements
             // other 'case' lines to check for other
             // permissions this app might request
         }
+    }
+
+    private void showLocationAvailabilityDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.dialog_message)
+                .setTitle(R.string.dialog_title);
+        builder.setPositiveButton(R.string.action_agree, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(intent);
+            }
+        });
+        builder.setNegativeButton(R.string.action_disagree, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
+        dialog.show();
     }
     //endregion
 
@@ -261,13 +265,20 @@ public class BaseLocationActivity extends AppCompatActivity implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         mLocationConnectedListener = (onLocationConnected) this;
+
         if (currentLocation == null) {
             checkPermission();
         }else
         {
-            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            mLocationConnectedListener.getCurrentLocation(currentLocation);
-            startLocationUpdates();
+            if (!isLocationEnabled())
+                showLocationAvailabilityDialog();
+            else
+            {
+                startLocationUpdates();
+                currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                mLocationConnectedListener.getCurrentLocation(currentLocation);
+            }
+
         }
     }
 
